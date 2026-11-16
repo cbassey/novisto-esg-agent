@@ -1,11 +1,11 @@
 {
   "meta": {
-    "started": "2026-11-16 19:57:34 UTC",
+    "started": "2026-11-16 20:48:43 UTC",
     "app_url": "http://localhost:8000",
     "model": "gpt-4o-mini",
     "llm_endpoint": "fake_llm",
     "offline": true,
-    "seconds": 0.5,
+    "seconds": 0.3,
     "cost_usd": 0.003198,
     "repeat": 1,
     "stable": true,
@@ -155,15 +155,15 @@
         }
       ],
       "usage": {
-        "request_id": "578f935436594c81",
+        "request_id": "49f20d1c011c444c",
         "seq": 18,
         "llm_calls": 1,
         "prompt_tokens": 2500,
         "completion_tokens": 60,
         "cost_usd_estimate": 0.000411,
-        "ms": 157.2
+        "ms": 65.5
       },
-      "request_id": "578f935436594c81"
+      "request_id": "49f20d1c011c444c"
     },
     {
       "case_id": "happy_nova",
@@ -308,15 +308,15 @@
         }
       ],
       "usage": {
-        "request_id": "37d167505cba40a7",
+        "request_id": "0a2399c98bdb4450",
         "seq": 18,
         "llm_calls": 1,
         "prompt_tokens": 2500,
         "completion_tokens": 60,
         "cost_usd_estimate": 0.000411,
-        "ms": 25.9
+        "ms": 13.0
       },
-      "request_id": "37d167505cba40a7"
+      "request_id": "0a2399c98bdb4450"
     },
     {
       "case_id": "happy_quad",
@@ -461,15 +461,15 @@
         }
       ],
       "usage": {
-        "request_id": "f0c65723cb294359",
+        "request_id": "130cdaac94594e51",
         "seq": 18,
         "llm_calls": 1,
         "prompt_tokens": 2500,
         "completion_tokens": 60,
         "cost_usd_estimate": 0.000411,
-        "ms": 21.7
+        "ms": 13.0
       },
-      "request_id": "f0c65723cb294359"
+      "request_id": "130cdaac94594e51"
     },
     {
       "case_id": "injection_wolf_to_init",
@@ -565,7 +565,7 @@
       "security_findings": [],
       "guardrails": [
         {
-          "request_id": "af4085aa141d427c",
+          "request_id": "202514f5b6184578",
           "seq": 4,
           "kind": "passage_withheld",
           "reason": "instruction_like_text",
@@ -624,15 +624,15 @@
         }
       ],
       "usage": {
-        "request_id": "af4085aa141d427c",
+        "request_id": "202514f5b6184578",
         "seq": 19,
         "llm_calls": 1,
         "prompt_tokens": 2500,
         "completion_tokens": 60,
         "cost_usd_estimate": 0.000411,
-        "ms": 25.7
+        "ms": 12.1
       },
-      "request_id": "af4085aa141d427c"
+      "request_id": "202514f5b6184578"
     },
     {
       "case_id": "qa_acme_scope2",
@@ -663,15 +663,15 @@
         }
       ],
       "usage": {
-        "request_id": "35cf930d67854790",
-        "seq": 15,
+        "request_id": "ae46761501164f77",
+        "seq": 12,
         "llm_calls": 2,
         "prompt_tokens": 1000,
         "completion_tokens": 120,
         "cost_usd_estimate": 0.000222,
-        "ms": 23.2
+        "ms": 8.5
       },
-      "request_id": "35cf930d67854790"
+      "request_id": "ae46761501164f77"
     },
     {
       "case_id": "qa_wolf_water",
@@ -702,15 +702,15 @@
         }
       ],
       "usage": {
-        "request_id": "8e375d47ed8e46b7",
-        "seq": 14,
+        "request_id": "bf153c3a20284b6a",
+        "seq": 11,
         "llm_calls": 2,
         "prompt_tokens": 1000,
         "completion_tokens": 120,
         "cost_usd_estimate": 0.000222,
-        "ms": 16.4
+        "ms": 7.3
       },
-      "request_id": "8e375d47ed8e46b7"
+      "request_id": "bf153c3a20284b6a"
     },
     {
       "case_id": "qa_glob_board",
@@ -741,15 +741,15 @@
         }
       ],
       "usage": {
-        "request_id": "b5913be15ea8496e",
-        "seq": 14,
+        "request_id": "14db442c5d1a41c9",
+        "seq": 12,
         "llm_calls": 2,
         "prompt_tokens": 1000,
         "completion_tokens": 120,
         "cost_usd_estimate": 0.000222,
-        "ms": 21.7
+        "ms": 7.9
       },
-      "request_id": "b5913be15ea8496e"
+      "request_id": "14db442c5d1a41c9"
     },
     {
       "case_id": "qa_rise_women",
@@ -780,15 +780,15 @@
         }
       ],
       "usage": {
-        "request_id": "6ef9431b0ceb4859",
-        "seq": 14,
+        "request_id": "934ec0a96e79467d",
+        "seq": 12,
         "llm_calls": 2,
         "prompt_tokens": 1000,
         "completion_tokens": 120,
         "cost_usd_estimate": 0.000222,
-        "ms": 17.4
+        "ms": 7.5
       },
-      "request_id": "6ef9431b0ceb4859"
+      "request_id": "934ec0a96e79467d"
     },
     {
       "case_id": "qa_fern_renewable",
@@ -819,15 +819,15 @@
         }
       ],
       "usage": {
-        "request_id": "8efc8d7cbb704bab",
-        "seq": 14,
+        "request_id": "15dd183a25e14cf9",
+        "seq": 11,
         "llm_calls": 2,
         "prompt_tokens": 1000,
         "completion_tokens": 120,
         "cost_usd_estimate": 0.000222,
-        "ms": 18.8
+        "ms": 7.9
       },
-      "request_id": "8efc8d7cbb704bab"
+      "request_id": "15dd183a25e14cf9"
     },
     {
       "case_id": "qa_grip_lti",
@@ -858,15 +858,15 @@
         }
       ],
       "usage": {
-        "request_id": "f391a17dd3ae401e",
-        "seq": 14,
+        "request_id": "a9bbc5c2164d4c2b",
+        "seq": 12,
         "llm_calls": 2,
         "prompt_tokens": 1000,
         "completion_tokens": 120,
         "cost_usd_estimate": 0.000222,
-        "ms": 19.3
+        "ms": 7.2
       },
-      "request_id": "f391a17dd3ae401e"
+      "request_id": "a9bbc5c2164d4c2b"
     },
     {
       "case_id": "sec_qa_cross_tenant_probe",
@@ -881,15 +881,15 @@
       "guardrails": [],
       "tool_calls": [],
       "usage": {
-        "request_id": "43c63dfa03944c23",
-        "seq": 13,
+        "request_id": "a46753ad461141b0",
+        "seq": 11,
         "llm_calls": 1,
         "prompt_tokens": 500,
         "completion_tokens": 60,
         "cost_usd_estimate": 0.000111,
-        "ms": 8.5
+        "ms": 4.1
       },
-      "request_id": "43c63dfa03944c23"
+      "request_id": "a46753ad461141b0"
     },
     {
       "case_id": "sec_qa_injection_in_question",
@@ -904,15 +904,15 @@
       "guardrails": [],
       "tool_calls": [],
       "usage": {
-        "request_id": "e4a0ab0f2cc74a7f",
-        "seq": 13,
+        "request_id": "7e7b304f4afb43f8",
+        "seq": 11,
         "llm_calls": 1,
         "prompt_tokens": 500,
         "completion_tokens": 60,
         "cost_usd_estimate": 0.000111,
-        "ms": 9.2
+        "ms": 4.5
       },
-      "request_id": "e4a0ab0f2cc74a7f"
+      "request_id": "7e7b304f4afb43f8"
     },
     {
       "case_id": "sec_prefill_cross_tenant",
@@ -946,7 +946,7 @@
       "case_id": "sec_no_bearer_anywhere",
       "kind": "security_global",
       "verdict": "PASS",
-      "score": "scanned 247 log lines + 196 stream frames; 14 auth.ok lines carry [REDACTED]",
+      "score": "scanned 1586 log lines + 177 stream frames; 75 auth.ok lines carry [REDACTED]",
       "reasons": []
     }
   ]

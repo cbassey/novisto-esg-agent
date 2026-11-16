@@ -63,7 +63,7 @@ SSE frames are `event: <type>` + `data: {request_id, seq, ...}`. The types are:
   1. **Schema:** company arguments are strict-mode `enum`s of the request's scope. For prefill that is *one* ticker, and the model has no `fetch_company` tool at all.
   2. **Executor:** every call is re-checked against scope *before any I/O*. Denied calls are recorded and logged at WARNING.
   3. **company_api:** enforces 403 on the user's token.
-- **Injected instructions:** document sections that address an automated reader are quarantined at ingest. They are never sent to the model, and a `guardrail` event names the doc and page (never the text). An egress guard withholds any other tenant's tickers, names and ids from every stream frame, including token deltas split across chunks. The validator independently rejects any value not found in this company's own evidence.
+- **Injected instructions:** document sections that address an automated reader are quarantined at ingest. They are never sent to the model, and a `guardrail` event names the doc and page (never the text). An egress guard withholds any other tenant's tickers, names and ids from every stream frame, including terms split across stream chunks (the buffer is scrubbed whole and only released at word boundaries). The validator independently rejects any value not found in this company's own evidence.
 - **Bearer never logged or streamed:** a redaction filter on every log record scrubs exact token values, `Bearer …` and `tok_*`/`sk-*` shapes. Headers are never logged. The proof line is `auth.ok … "credential": "[REDACTED]", "credential_fp": <per-process HMAC>`, and `make demo` greps the log for token occurrences (0).
 
 ## 6. Observability

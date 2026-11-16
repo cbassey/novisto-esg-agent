@@ -107,16 +107,20 @@ class StreamScrubber:
         self.buf = ""
 
     def push(self, delta: str) -> str:
-        self.buf += delta
+        # Scrub the WHOLE buffer first, so a term is replaced before any cut can
+        # split it; then release only up to a word boundary in the safe region.
+        # Never cut inside a word: with real model streams (tiny tokens) a
+        # mid-word cut once released "Globe" + "x" unscrubbed. If there is no
+        # boundary yet, hold everything until more text or flush().
+        self.buf = self.guard.scrub(self.buf + delta)
         keep = self.guard.max_term_len + 1
         if len(self.buf) <= keep:
             return ""
-        # Cut at a whitespace boundary inside the safe region if possible.
-        cut = len(self.buf) - keep
-        ws = self.buf.rfind(" ", 0, cut + 1)
-        cut = ws + 1 if ws > 0 else cut
-        ready, self.buf = self.buf[:cut], self.buf[cut:]
-        return self.guard.scrub(ready)
+        ws = self.buf.rfind(" ", 0, len(self.buf) - keep + 1)
+        if ws < 0:
+            return ""
+        ready, self.buf = self.buf[: ws + 1], self.buf[ws + 1 :]
+        return ready
 
     def flush(self) -> str:
         ready, self.buf = self.buf, ""

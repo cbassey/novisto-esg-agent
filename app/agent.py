@@ -111,6 +111,7 @@ Companies you can access (ticker: name):
 
 Rules:
 - Use search_documents to find evidence. Answer ONLY from passages and tool results in this conversation.
+- Every figure must be backed by a report passage: search the report even if fetch_company also returns the figure, and cite the passage. Internal company facts on their own are not a citation.
 - Cite every figure as [DOC p.N] using the passage's doc and page, e.g. [ACME_report.pdf p.3].
 - If the question is about a company that is not in the list above, reply that you do not have access to that company's data. Do not search for it.
 - If the evidence does not contain the answer, say it is not disclosed in the available reports. Never guess or estimate.
@@ -137,10 +138,17 @@ async def run_ask(deps: Deps, principal: Principal, question: str) -> AsyncItera
         ]
         scrubber = StreamScrubber(run.guard)
         answer = ""
+        called: set[str] = set()
         for step in range(settings.max_agent_steps):
             last = step == settings.max_agent_steps - 1
+            choice: str | dict = "none" if last else "auto"
+            # The prompt asks for a report passage behind every figure, but the live
+            # model once answered from fetch_company alone (uncited). Once it has
+            # engaged an in-scope company without searching, force the search.
+            if not last and "fetch_company" in called and "search_documents" not in called:
+                choice = {"type": "function", "function": {"name": "search_documents"}}
             comp: Completion | None = None
-            async for kind, val in deps.llm.stream(messages, tools=tools, tool_choice="none" if last else "auto"):
+            async for kind, val in deps.llm.stream(messages, tools=tools, tool_choice=choice):
                 if kind == "delta":
                     out = scrubber.push(val)
                     if out:
@@ -156,6 +164,8 @@ async def run_ask(deps: Deps, principal: Principal, question: str) -> AsyncItera
             messages.append(_assistant_msg(comp))
             for tc in comp.tool_calls:
                 call, payload = await execute(ctx, tc["name"], tc["arguments"], actor="model")
+                if call.status == "ok":
+                    called.add(call.name)
                 for f in _tool_frames(run, call):
                     yield f
                 messages.append({"role": "tool", "tool_call_id": tc["id"], "content": json.dumps(payload)})

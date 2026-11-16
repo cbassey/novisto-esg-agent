@@ -1,6 +1,6 @@
-# Eval run — 2026-11-16 19:57:34 UTC
+# Eval run — 2026-11-16 20:48:43 UTC
 
-**17/17 cases passed**  ·  app `http://localhost:8000`  ·  model `gpt-4o-mini`  ·  LLM endpoint `fake_llm`  ·  0.5s  ·  est. cost $0.0032
+**17/17 cases passed**  ·  app `http://localhost:8000`  ·  model `gpt-4o-mini`  ·  LLM endpoint `fake_llm`  ·  0.3s  ·  est. cost $0.0032
 
 > **OFFLINE RUN** — the LLM was the scripted stand-in in `tests/fake_llm/`, not a model. This verifies plumbing, security and scoring only; it says nothing about model quality.
 
@@ -22,7 +22,7 @@
 | `sec_prefill_unknown_company` | http_status | **PASS** | HTTP 403 (expected 403) | — |
 | `sec_missing_bearer` | http_status | **PASS** | HTTP 401 (expected 401) | — |
 | `sec_unknown_bearer` | http_status | **PASS** | HTTP 401 (expected 401) | — |
-| `sec_no_bearer_anywhere` | security_global | **PASS** | scanned 247 log lines + 196 stream frames; 14 auth.ok lines carry [REDACTED] | — |
+| `sec_no_bearer_anywhere` | security_global | **PASS** | scanned 1586 log lines + 177 stream frames; 75 auth.ok lines carry [REDACTED] | — |
 
 ## Details
 
