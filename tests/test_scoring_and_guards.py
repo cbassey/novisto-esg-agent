@@ -85,3 +85,16 @@ def test_injection_detector_and_egress():
     s = StreamScrubber(g)
     out = "".join(s.push(x) for x in ["data from IN", "IT is not yours"]) + s.flush()
     assert "INIT" not in out
+
+
+def test_stream_scrubber_with_real_token_boundaries():
+    # Exact chunking seen from OpenAI on the first live run; the old scrubber
+    # cut mid-word here and streamed "Globe" + "x" to the client.
+    g = EgressGuard(DATA, "tenant_a", tuple(TENANTS["tok_tenant_a_user"]["companies"]))
+    toks = ["I", " do", " not", " have", " access", " to", " Glob", "ex", " Chemicals", "'", " data", "."]
+    for split in (toks, [c for c in "".join(toks)], ["I do not have access to Globex Chemicals' data."]):
+        s = StreamScrubber(g)
+        out = [s.push(t) for t in split] + [s.flush()]
+        joined = "".join(out)
+        assert "Glob" not in joined, joined        # no fragment of the other tenant's name
+        assert joined.startswith("I do not have access to [withheld]"), joined

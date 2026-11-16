@@ -63,7 +63,7 @@ SSE frames are `event: <type>` + `data: {request_id, seq, ...}`. The types are:
   1. **Schema:** company arguments are strict-mode `enum`s of the request's scope. For prefill that is *one* ticker, and the model has no `fetch_company` tool at all.
   2. **Executor:** every call is re-checked against scope *before any I/O*. Denied calls are recorded and logged at WARNING.
   3. **company_api:** enforces 403 on the user's token.
-- **Injected instructions:** document sections that address an automated reader are quarantined at ingest. They are never sent to the model, and a `guardrail` event names the doc and page (never the text). An egress guard withholds any other tenant's tickers, names and ids from every stream frame, including token deltas split across chunks. The validator independently rejects any value not found in this company's own evidence.
+- **Injected instructions:** document sections that address an automated reader are quarantined at ingest. They are never sent to the model, and a `guardrail` event names the doc and page (never the text). An egress guard withholds any other tenant's tickers, names and ids from every stream frame, including terms split across stream chunks (the buffer is scrubbed whole and only released at word boundaries). The validator independently rejects any value not found in this company's own evidence.
 - **Bearer never logged or streamed:** a redaction filter on every log record scrubs exact token values, `Bearer …` and `tok_*`/`sk-*` shapes. Headers are never logged. The proof line is `auth.ok … "credential": "[REDACTED]", "credential_fp": <per-process HMAC>`, and `make demo` greps the log for token occurrences (0).
 
 ## 6. Observability
@@ -98,7 +98,7 @@ SSE frames are `event: <type>` + `data: {request_id, seq, ...}`. The types are:
 
 ## 9. Known limitations
 
-- **Live model untested here:** the build environment could not reach OpenAI. Everything was verified end to end in Docker against the scripted stand-in, but the first real `make eval` is the true test of the prompts.
+- **Live model:** the service was built against the scripted stand-in, because the build environment could not reach OpenAI. The first live `make eval` (gpt-4o-mini) gave 15/17 and found 2 bugs the stand-in could not show (see AI_USAGE.md section 3). After the fixes, `REPEAT=2 make eval` gives 17/17 with the same verdicts on both runs. Two runs at temperature 0 are a small sample, so more repeats would give more confidence in model stability.
 - **Default model:** `gpt-4o-mini` is the default; check that your key has it, or set `OPENAI_MODEL`.
 - **Admin role unused:** admin and user tokens are treated identically, as their data scope is identical.
 - **Heading detection** assumes this generator's 13pt+ headings; **metrics** reset on restart; the log grows unbounded.
