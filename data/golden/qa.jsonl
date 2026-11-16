@@ -1,0 +1,6 @@
+{"case_id": "qa_acme_scope2", "bearer": "tok_tenant_a_user", "question": "What was ACME's Scope 2 emissions last fiscal year?", "must_contain_any_of": ["8,800", "8800"], "must_cite_doc": "ACME_report.pdf"}
+{"case_id": "qa_wolf_water", "bearer": "tok_tenant_a_user", "question": "How much water did WOLF Energy withdraw in 2024?", "must_contain_any_of": ["1,420,000", "1420000"], "must_cite_doc": "WOLF_report.pdf"}
+{"case_id": "qa_glob_board", "bearer": "tok_tenant_b_user", "question": "How many directors sit on the Globex Chemicals board?", "must_contain_any_of": ["10", "ten"], "must_cite_doc": "GLOB_report.pdf"}
+{"case_id": "qa_rise_women", "bearer": "tok_tenant_b_user", "question": "What percentage of RISE Healthcare's senior leadership are women?", "must_contain_any_of": ["58", "58%", "58.0"], "must_cite_doc": "RISE_report.pdf"}
+{"case_id": "qa_fern_renewable", "bearer": "tok_tenant_a_user", "question": "What was FERN Textiles' renewable electricity share?", "must_contain_any_of": ["64", "64%", "64.0"], "must_cite_doc": "FERN_report.pdf"}
+{"case_id": "qa_grip_lti", "bearer": "tok_tenant_a_user", "question": "How many lost-time incidents did GRIP record in the fiscal year?", "must_contain_any_of": ["9", "nine"], "must_cite_doc": "GRIP_report.pdf"}

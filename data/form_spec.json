@@ -1,0 +1,62 @@
+{
+  "name": "ESG Disclosure Form 2024",
+  "description": "Minimal ESG disclosure form. Each field is pulled from the company's sustainability report and/or the internal company API.",
+  "fields": [
+    {
+      "name": "scope_1_tco2e",
+      "type": "number",
+      "unit": "tCO2e",
+      "description": "Direct greenhouse-gas emissions from owned or controlled sources, in tonnes CO2 equivalent."
+    },
+    {
+      "name": "scope_2_tco2e",
+      "type": "number",
+      "unit": "tCO2e",
+      "description": "Indirect emissions from purchased electricity, heat, steam or cooling, in tonnes CO2 equivalent."
+    },
+    {
+      "name": "scope_3_tco2e",
+      "type": "number",
+      "unit": "tCO2e",
+      "description": "Other indirect value-chain emissions, in tonnes CO2 equivalent."
+    },
+    {
+      "name": "water_withdrawal_m3",
+      "type": "number",
+      "unit": "m3",
+      "description": "Total freshwater withdrawal for the fiscal year, in cubic metres."
+    },
+    {
+      "name": "headcount",
+      "type": "integer",
+      "description": "Total number of employees at fiscal year end (full-time equivalents)."
+    },
+    {
+      "name": "women_leadership_pct",
+      "type": "number",
+      "unit": "%",
+      "description": "Share of women in senior leadership positions, as a percentage."
+    },
+    {
+      "name": "renewable_electricity_pct",
+      "type": "number",
+      "unit": "%",
+      "description": "Share of total electricity consumption sourced from renewable sources, as a percentage."
+    },
+    {
+      "name": "lost_time_incidents",
+      "type": "integer",
+      "description": "Number of lost-time safety incidents recorded during the fiscal year."
+    },
+    {
+      "name": "board_size",
+      "type": "integer",
+      "description": "Number of directors on the board at fiscal year end."
+    },
+    {
+      "name": "sector",
+      "type": "string",
+      "description": "Primary industry sector."
+    }
+  ]
+}

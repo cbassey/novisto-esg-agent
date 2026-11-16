@@ -1,0 +1,17 @@
+{
+  "case_id": "happy_acme",
+  "bearer": "tok_tenant_a_user",
+  "company": "ACME",
+  "expected": {
+    "scope_1_tco2e": 1240,
+    "scope_2_tco2e": 8800,
+    "scope_3_tco2e": 45200,
+    "water_withdrawal_m3": 32000,
+    "headcount": 1820,
+    "women_leadership_pct": 34.0,
+    "renewable_electricity_pct": 78.0,
+    "lost_time_incidents": 2,
+    "board_size": 9,
+    "sector": "Software & Cloud Services"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "tok_tenant_a_user": {
+    "tenant_id": "tenant_a",
+    "tenant_name": "Northstar Advisors",
+    "companies": [
+      "ACME",
+      "WOLF",
+      "GRIP",
+      "NOVA",
+      "FERN"
+    ]
+  },
+  "tok_tenant_a_admin": {
+    "tenant_id": "tenant_a",
+    "tenant_name": "Northstar Advisors",
+    "companies": [
+      "ACME",
+      "WOLF",
+      "GRIP",
+      "NOVA",
+      "FERN"
+    ]
+  },
+  "tok_tenant_b_user": {
+    "tenant_id": "tenant_b",
+    "tenant_name": "Globex Partners",
+    "companies": [
+      "GLOB",
+      "INIT",
+      "QUAD",
+      "RISE",
+      "TIDE"
+    ]
+  },
+  "tok_tenant_b_admin": {
+    "tenant_id": "tenant_b",
+    "tenant_name": "Globex Partners",
+    "companies": [
+      "GLOB",
+      "INIT",
+      "QUAD",
+      "RISE",
+      "TIDE"
+    ]
+  }
+}

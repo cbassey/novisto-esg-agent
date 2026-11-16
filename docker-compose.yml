@@ -1,0 +1,46 @@
+# Novisto AI Engineer take-home - docker-compose
+#
+# services.company_api is pre-wired and should NOT be modified.
+# services.app is our service (app/). docker-compose.offline.yml layers a
+# scripted LLM stand-in on top for keyless plumbing tests (make eval-offline).
+
+services:
+  company_api:
+    build: ./services/company_api
+    container_name: company_api
+    ports:
+      - "8001:8000"          # host:container - hit it from your laptop at http://localhost:8001
+    volumes:
+      - ./data:/app/data:ro  # read-only tenants.json + companies.json
+    restart: unless-stopped
+    networks:
+      - takehome
+
+  # Our service. Name kept as 'app' per the scaffold contract.
+  app:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    container_name: app
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - COMPANY_API_URL=http://company_api:8000
+      - DATA_DIR=/app/data
+      - VAR_DIR=/app/var
+    volumes:
+      - ./data:/app/data:ro    # PDFs, form_spec.json, tenants.json, golden cases
+      - ./var:/app/var         # JSON logs (var/log/app.jsonl) - the eval reads these
+      - ./eval:/app/eval       # eval code + eval/last_run.* written back to the host
+    depends_on:
+      company_api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - takehome
+
+networks:
+  takehome:
+    driver: bridge

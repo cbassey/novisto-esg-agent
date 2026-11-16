@@ -1,0 +1,202 @@
+{
+  "ACME": {
+    "ticker": "ACME",
+    "name": "ACME Technologies",
+    "sector": "Software & Cloud Services",
+    "hq": "Berlin, Germany",
+    "fiscal_year": 2024,
+    "headcount": 1820,
+    "board_size": 9,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 1314,
+      "scope_2_tco2e": 9592,
+      "scope_3_tco2e": 47008,
+      "water_withdrawal_m3": 34560,
+      "women_leadership_pct": 31.0,
+      "renewable_electricity_pct": 71.0,
+      "lost_time_incidents": 3
+    },
+    "tenant_id": "tenant_a"
+  },
+  "WOLF": {
+    "ticker": "WOLF",
+    "name": "WOLF Energy",
+    "sector": "Oil & Gas",
+    "hq": "Oslo, Norway",
+    "fiscal_year": 2024,
+    "headcount": 4200,
+    "board_size": 11,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 222600,
+      "scope_2_tco2e": 52320,
+      "scope_3_tco2e": 2964000,
+      "water_withdrawal_m3": 1533600,
+      "women_leadership_pct": 25.0,
+      "renewable_electricity_pct": 35.0,
+      "lost_time_incidents": 15
+    },
+    "tenant_id": "tenant_a"
+  },
+  "GRIP": {
+    "ticker": "GRIP",
+    "name": "GRIP Industries",
+    "sector": "Industrial Manufacturing",
+    "hq": "Detroit, United States",
+    "fiscal_year": 2024,
+    "headcount": 2800,
+    "board_size": 10,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 55120,
+      "scope_2_tco2e": 41420,
+      "scope_3_tco2e": 426400,
+      "water_withdrawal_m3": 734400,
+      "women_leadership_pct": 19.0,
+      "renewable_electricity_pct": 28.0,
+      "lost_time_incidents": 10
+    },
+    "tenant_id": "tenant_a"
+  },
+  "NOVA": {
+    "ticker": "NOVA",
+    "name": "NOVA Financial",
+    "sector": "Commercial Banking",
+    "hq": "Toronto, Canada",
+    "fiscal_year": 2024,
+    "headcount": 980,
+    "board_size": 12,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 190,
+      "scope_2_tco2e": 2289,
+      "scope_3_tco2e": 133120,
+      "water_withdrawal_m3": 19980,
+      "women_leadership_pct": 43.0,
+      "renewable_electricity_pct": 85.0,
+      "lost_time_incidents": 1
+    },
+    "tenant_id": "tenant_a"
+  },
+  "FERN": {
+    "ticker": "FERN",
+    "name": "FERN Textiles",
+    "sector": "Apparel & Textiles",
+    "hq": "Lisbon, Portugal",
+    "fiscal_year": 2024,
+    "headcount": 650,
+    "board_size": 7,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 3604,
+      "scope_2_tco2e": 6104,
+      "scope_3_tco2e": 74880,
+      "water_withdrawal_m3": 237600,
+      "women_leadership_pct": 49.0,
+      "renewable_electricity_pct": 57.0,
+      "lost_time_incidents": 4
+    },
+    "tenant_id": "tenant_a"
+  },
+  "GLOB": {
+    "ticker": "GLOB",
+    "name": "Globex Chemicals",
+    "sector": "Specialty Chemicals",
+    "hq": "Rotterdam, Netherlands",
+    "fiscal_year": 2024,
+    "headcount": 3400,
+    "board_size": 10,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 91160,
+      "scope_2_tco2e": 31610,
+      "scope_3_tco2e": 644800,
+      "water_withdrawal_m3": 3024000,
+      "women_leadership_pct": 28.0,
+      "renewable_electricity_pct": 41.0,
+      "lost_time_incidents": 7
+    },
+    "tenant_id": "tenant_b"
+  },
+  "INIT": {
+    "ticker": "INIT",
+    "name": "INIT Retail",
+    "sector": "Retail",
+    "hq": "London, United Kingdom",
+    "fiscal_year": 2024,
+    "headcount": 5200,
+    "board_size": 9,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 6572,
+      "scope_2_tco2e": 16132,
+      "scope_3_tco2e": 1019200,
+      "water_withdrawal_m3": 135000,
+      "women_leadership_pct": 41.0,
+      "renewable_electricity_pct": 64.0,
+      "lost_time_incidents": 12
+    },
+    "tenant_id": "tenant_b"
+  },
+  "QUAD": {
+    "ticker": "QUAD",
+    "name": "QUAD Logistics",
+    "sector": "Transport & Logistics",
+    "hq": "Marseille, France",
+    "fiscal_year": 2024,
+    "headcount": 1900,
+    "board_size": 8,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 99640,
+      "scope_2_tco2e": 4578,
+      "scope_3_tco2e": 192400,
+      "water_withdrawal_m3": 45360,
+      "women_leadership_pct": 15.0,
+      "renewable_electricity_pct": 22.0,
+      "lost_time_incidents": 8
+    },
+    "tenant_id": "tenant_b"
+  },
+  "RISE": {
+    "ticker": "RISE",
+    "name": "RISE Healthcare",
+    "sector": "Healthcare Services",
+    "hq": "Dublin, Ireland",
+    "fiscal_year": 2024,
+    "headcount": 780,
+    "board_size": 9,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 1038,
+      "scope_2_tco2e": 3706,
+      "scope_3_tco2e": 43680,
+      "water_withdrawal_m3": 102600,
+      "women_leadership_pct": 55.0,
+      "renewable_electricity_pct": 78.0,
+      "lost_time_incidents": 2
+    },
+    "tenant_id": "tenant_b"
+  },
+  "TIDE": {
+    "ticker": "TIDE",
+    "name": "TIDE Utilities",
+    "sector": "Water & Wastewater Utilities",
+    "hq": "Copenhagen, Denmark",
+    "fiscal_year": 2024,
+    "headcount": 2100,
+    "board_size": 11,
+    "prior_year_disclosure": {
+      "fiscal_year": 2023,
+      "scope_1_tco2e": 5088,
+      "scope_2_tco2e": 0,
+      "scope_3_tco2e": 33280,
+      "water_withdrawal_m3": 19980000,
+      "women_leadership_pct": 33.0,
+      "renewable_electricity_pct": 93.0,
+      "lost_time_incidents": 5
+    },
+    "tenant_id": "tenant_b"
+  }
+}

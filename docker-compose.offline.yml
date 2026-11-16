@@ -1,0 +1,26 @@
+# Overlay for keyless runs: `make eval-offline` / `make eval-adversarial`.
+# Points the app at a scripted OpenAI-compatible stand-in (tests/fake_llm).
+# It verifies plumbing, security and scoring only; it is not a model.
+services:
+  fake_llm:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    container_name: fake_llm
+    command: ["python", "-m", "uvicorn", "tests.fake_llm.server:app", "--host", "0.0.0.0", "--port", "9000", "--no-access-log"]
+    environment:
+      - FAKE_MODE=${FAKE_MODE:-honest}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 9000), 2)"]
+      interval: 3s
+      retries: 10
+    networks:
+      - takehome
+
+  app:
+    environment:
+      - OPENAI_API_KEY=sk-offline-stand-in
+      - OPENAI_BASE_URL=http://fake_llm:9000/v1
+    depends_on:
+      fake_llm:
+        condition: service_healthy

@@ -1,0 +1,17 @@
+{
+  "case_id": "happy_nova",
+  "bearer": "tok_tenant_a_admin",
+  "company": "NOVA",
+  "expected": {
+    "scope_1_tco2e": 180,
+    "scope_2_tco2e": 2100,
+    "scope_3_tco2e": 128000,
+    "water_withdrawal_m3": 18500,
+    "headcount": 980,
+    "women_leadership_pct": 46.0,
+    "renewable_electricity_pct": 92.0,
+    "lost_time_incidents": 0,
+    "board_size": 12,
+    "sector": "Commercial Banking"
+  }
+}

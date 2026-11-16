@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ESG agent — demo UI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font: 14px/1.45 system-ui, -apple-system, sans-serif; margin: 0; color: #1d2430; background: #f6f7f9; }
+  header { padding: 14px 24px; background: #fff; border-bottom: 1px solid #e3e6ea; display: flex; gap: 16px; align-items: center; }
+  header h1 { font-size: 16px; margin: 0; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 24px; }
+  section { background: #fff; border: 1px solid #e3e6ea; border-radius: 8px; padding: 14px; }
+  h2 { font-size: 14px; margin: 0 0 10px; }
+  input, select, button { font: inherit; padding: 6px 8px; border: 1px solid #c9ced6; border-radius: 6px; }
+  button { background: #1d4ed8; color: #fff; border-color: #1d4ed8; cursor: pointer; }
+  .row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .row input { flex: 1; }
+  #answer { white-space: pre-wrap; min-height: 48px; padding: 8px; background: #f9fafb; border-radius: 6px; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { text-align: left; padding: 4px 6px; border-bottom: 1px solid #eef0f3; font-variant-numeric: tabular-nums; }
+  .verified { color: #166534; } .conflict { color: #92400e; } .rejected, .missing { color: #991b1b; }
+  #events { grid-column: 1 / -1; font: 12px/1.4 ui-monospace, Menlo, monospace; max-height: 320px; overflow: auto; white-space: pre-wrap; }
+  .ev-guardrail { color: #92400e; } .ev-error { color: #991b1b; } .ev-tool\.call { color: #1d4ed8; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ESG agent</h1>
+  <label>Bearer
+    <select id="token">
+      <option>tok_tenant_a_user</option><option>tok_tenant_a_admin</option>
+      <option>tok_tenant_b_user</option><option>tok_tenant_b_admin</option>
+    </select>
+  </label>
+  <span id="companies"></span>
+</header>
+<main>
+  <section>
+    <h2>Ask</h2>
+    <div class="row"><input id="q" value="What was ACME's Scope 2 emissions last fiscal year?"><button id="askBtn">Ask</button></div>
+    <div id="answer"></div>
+    <div id="cites"></div>
+  </section>
+  <section>
+    <h2>Prefill</h2>
+    <div class="row"><input id="co" value="ACME" style="max-width:120px"><button id="preBtn">Prefill</button></div>
+    <table id="form"><thead><tr><th>Field</th><th>Value</th><th>Status</th><th>Source</th></tr></thead><tbody></tbody></table>
+  </section>
+  <section id="events"></section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const hdr = () => ({ "Authorization": "Bearer " + $("token").value, "Content-Type": "application/json" });
+
+async function loadCompanies() {
+  const r = await fetch("/v1/companies", { headers: hdr() });
+  const j = await r.json();
+  $("companies").textContent = r.ok ? `${j.tenant_id}: ${j.companies.map(c => c.ticker).join(", ")}` : `error ${r.status}`;
+}
+
+async function stream(path, body, onEvent) {
+  $("events").textContent = "";
+  const r = await fetch(path, { method: "POST", headers: hdr(), body: JSON.stringify(body) });
+  if (!r.ok) { log("error", await r.text()); return; }
+  const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = "";
+  for (;;) {
+    const { value, done } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const frame = buf.slice(0, i); buf = buf.slice(i + 2);
+      const type = (frame.match(/^event: (.*)$/m) || [])[1];
+      const data = JSON.parse((frame.match(/^data: (.*)$/m) || [])[1] || "{}");
+      if (type !== "answer.delta") log(type, JSON.stringify(data));
+      onEvent(type, data);
+    }
+  }
+}
+function log(type, text) {
+  const d = document.createElement("div"); d.className = "ev-" + type; d.textContent = `${type}  ${text}`;
+  $("events").appendChild(d); $("events").scrollTop = 1e9;
+}
+$("askBtn").onclick = () => {
+  $("answer").textContent = ""; $("cites").textContent = "";
+  stream("/v1/ask", { question: $("q").value }, (t, d) => {
+    if (t === "answer.delta") $("answer").textContent += d.text;
+    if (t === "answer.final") $("cites").textContent = "Citations: " + (d.citations.map(c => `${c.doc} p.${c.page}`).join(", ") || "none");
+  });
+};
+$("preBtn").onclick = () => {
+  const tb = $("form").querySelector("tbody"); tb.innerHTML = "";
+  stream("/v1/prefill", { company: $("co").value }, (t, d) => {
+    if (t !== "form.field") return;
+    const tr = document.createElement("tr");
+    const src = d.source === "report" ? `${d.doc} p.${d.page}` : d.source;
+    [d.name, d.value ?? "—", d.status + (d.flags.length ? " ⚑" : ""), src].forEach((v, k) => {
+      const td = document.createElement("td"); td.textContent = v; if (k === 2) td.className = d.status;
+      if (k === 2 && d.flags.length) td.title = d.flags.join(", "); tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+};
+$("token").onchange = loadCompanies; loadCompanies();
+</script>
+</body>
+</html>

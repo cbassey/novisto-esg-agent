@@ -1,0 +1,17 @@
+{
+  "case_id": "happy_quad",
+  "bearer": "tok_tenant_b_user",
+  "company": "QUAD",
+  "expected": {
+    "scope_1_tco2e": 94000,
+    "scope_2_tco2e": 4200,
+    "scope_3_tco2e": 185000,
+    "water_withdrawal_m3": 42000,
+    "headcount": 1900,
+    "women_leadership_pct": 18.0,
+    "renewable_electricity_pct": 29.0,
+    "lost_time_incidents": 7,
+    "board_size": 8,
+    "sector": "Transport & Logistics"
+  }
+}
