@@ -98,7 +98,7 @@ SSE frames are `event: <type>` + `data: {request_id, seq, ...}`. The types are:
 
 ## 9. Known limitations
 
-- **Live model untested here:** the build environment could not reach OpenAI. Everything was verified end to end in Docker against the scripted stand-in, but the first real `make eval` is the true test of the prompts.
+- **Live model:** the service was built against the scripted stand-in, because the build environment could not reach OpenAI. The first live `make eval` (gpt-4o-mini) gave 15/17 and found 2 bugs the stand-in could not show (see AI_USAGE.md section 3). After the fixes, `REPEAT=2 make eval` gives 17/17 with the same verdicts on both runs. Two runs at temperature 0 are a small sample, so more repeats would give more confidence in model stability.
 - **Default model:** `gpt-4o-mini` is the default; check that your key has it, or set `OPENAI_MODEL`.
 - **Admin role unused:** admin and user tokens are treated identically, as their data scope is identical.
 - **Heading detection** assumes this generator's 13pt+ headings; **metrics** reset on restart; the log grows unbounded.
