@@ -255,7 +255,7 @@ def write_report(results: list[dict], meta: dict, out: Path) -> None:
         else:
             continue
         if r.get("guardrails"):
-            lines.append(f"- Guardrails fired: " + "; ".join(f"{g.get('kind')} ({g.get('doc', g.get('tool', ''))} "
+            lines.append(f"- Guardrails fired: " + "; ".join(f"{g.get('kind')} ({g.get('doc', g.get('tool', g.get('value', '')))} "
                                                              f"{('p.' + str(g['page'])) if g.get('page') else ''})".strip()
                                                              for g in r["guardrails"]))
         calls = r.get("tool_calls", [])

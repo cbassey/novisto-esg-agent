@@ -47,6 +47,7 @@ class ToolContext:
     company_names: dict[str, str]
     seen_chunks: dict[str, Chunk] = field(default_factory=dict)
     api_facts: dict[str, dict] = field(default_factory=dict)
+    prior_facts: dict[str, dict] = field(default_factory=dict)  # ticker -> prior_year_disclosure
     calls: list[ToolCall] = field(default_factory=list)
 
     def __post_init__(self):
@@ -187,12 +188,22 @@ async def _search(ctx: ToolContext, args: dict):
 async def _fetch_company(ctx: ToolContext, args: dict):
     data = await ctx.company.get_company(ctx.principal, args["ticker"])
     ctx.api_facts[args["ticker"]] = data
-    return data, {"ticker": data.get("ticker"), "fields": sorted(data.keys())}
+    # The timeline shows what came back, not just which keys: an auditor needs to see
+    # the figure the model was handed. Scope is already enforced, so these are the
+    # requester's own company's values (and the egress guard scrubs the frame anyway).
+    return data, {"ticker": data.get("ticker"), "values": _scalars(data, skip={"ticker"})}
 
 
 async def _fetch_prior(ctx: ToolContext, args: dict):
     data = await ctx.company.get_prior_year(ctx.principal, args["ticker"])
-    return data, {"ticker": data.get("ticker"), "fiscal_year": data.get("prior_year_disclosure", {}).get("fiscal_year")}
+    prior = data.get("prior_year_disclosure") or {}
+    ctx.prior_facts[args["ticker"]] = prior
+    return data, {"ticker": data.get("ticker"), "fiscal_year": prior.get("fiscal_year"),
+                  "values": _scalars(prior, skip={"fiscal_year"})}
+
+
+def _scalars(d: dict, skip: set[str]) -> dict:
+    return {k: v for k, v in d.items() if k not in skip and isinstance(v, (str, int, float)) and not isinstance(v, bool)}
 
 
 _HANDLERS: dict[str, Callable[[ToolContext, dict], Awaitable[tuple[dict, dict]]]] = {
