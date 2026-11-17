@@ -22,6 +22,7 @@ from .config import settings
 from .guards import EgressGuard, StreamScrubber
 from openai import APIError
 
+from .grounding import API_CITATION_RE, api_values, check_figures
 from .llm import LLM, Completion, LLMNotConfigured
 from .logs import event, request_id_var
 from .metrics import metrics
@@ -113,6 +114,7 @@ Rules:
 - Use search_documents to find evidence. Answer ONLY from passages and tool results in this conversation.
 - Every figure must be backed by a report passage: search the report even if fetch_company also returns the figure, and cite the passage. Internal company facts on their own are not a citation.
 - Cite every figure as [DOC p.N] using the passage's doc and page, e.g. [ACME_report.pdf p.3].
+- A figure that came from fetch_company or fetch_prior_year is cited as [company_api TICKER], e.g. [company_api ACME]. Never put a figure under a report citation unless that passage contains it; every figure is checked against the source it is cited to.
 - If the question is about a company that is not in the list above, reply that you do not have access to that company's data. Do not search for it.
 - If the evidence does not contain the answer, say it is not disclosed in the available reports. Never guess or estimate.
 - Unless a year is named, answer for the most recent fiscal year in the reports (FY2024); "last fiscal year" means that most recent reported year. Prior-year (FY2023) figures come only from fetch_prior_year and must be labelled as prior-year.
@@ -174,19 +176,44 @@ async def run_ask(deps: Deps, principal: Principal, question: str) -> AsyncItera
             answer += tail
             yield run.frame("answer.delta", {"text": tail})
 
-        # Citations must point at passages actually retrieved in this request.
+        # 1. Citations must point at sources actually retrieved in this request:
+        #    a report passage from search_documents, or company_api data fetched for
+        #    an in-scope ticker.
         retrieved = {(c.doc, c.page) for c in ctx.seen_chunks.values()}
         citations, dropped = [], []
         for doc, page in dict.fromkeys((d.split("_")[0].upper() + "_report.pdf", p) for d, p in CITATION_RE.findall(answer)):
             (citations if (doc, int(page)) in retrieved else dropped).append({"doc": doc, "page": int(page)})
+        api_citations = []
+        for t in dict.fromkeys(m.upper() for m in API_CITATION_RE.findall(answer)):
+            if t in ctx.scope and (t in ctx.api_facts or t in ctx.prior_facts):
+                api_citations.append({"source": "company_api", "ticker": t})
+            else:
+                dropped.append({"doc": f"company_api {t}", "page": None})
         for d in dropped:
             metrics.inc("guardrail", kind="citation_dropped")
             yield run.frame("guardrail", {"kind": "citation_dropped", "reason": "not_in_retrieved_evidence", **d})
+
+        # 2. Every figure must be in a source the answer cites (or be arithmetic on
+        #    such figures). The text has already streamed, so it is not rewritten:
+        #    the figure is named, a guardrail fires, and the answer is not grounded.
+        figures = check_figures(
+            answer, CITATION_RE,
+            {f"{c['doc']} p.{c['page']}": [ch.text for ch in ctx.seen_chunks.values()
+                                           if (ch.doc, ch.page) == (c["doc"], c["page"])] for c in citations},
+            {f"company_api {a['ticker']}": api_values(ctx.api_facts.get(a["ticker"]), ctx.prior_facts.get(a["ticker"]))
+             for a in api_citations},
+        )
+        unsupported = [f["value"] for f in figures if f["status"] == "unsupported"]
+        for v in unsupported:
+            metrics.inc("guardrail", kind="figure_unsupported")
+            yield run.frame("guardrail", {"kind": "figure_unsupported", "value": v,
+                                          "reason": "not_in_any_cited_source"})
         if run.guard.hits:
             metrics.inc("guardrail", run.guard.hits, kind="egress_withheld")
             yield run.frame("guardrail", {"kind": "egress_withheld", "count": run.guard.hits})
         yield run.frame("answer.final", {"text": answer.strip(), "citations": citations,
-                                         "grounded": bool(citations)})
+                                         "api_citations": api_citations, "figures": figures,
+                                         "grounded": bool(citations or api_citations) and not unsupported})
         status = "ok"
     except CompanyApiError as e:
         yield run.frame("error", {"code": f"company_api_{e.status}", "message": "Internal company data unavailable."})

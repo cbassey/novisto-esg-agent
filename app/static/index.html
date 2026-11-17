@@ -19,8 +19,27 @@
   table { border-collapse: collapse; width: 100%; }
   td, th { text-align: left; padding: 4px 6px; border-bottom: 1px solid #eef0f3; font-variant-numeric: tabular-nums; }
   .verified { color: #166534; } .conflict { color: #92400e; } .rejected, .missing { color: #991b1b; }
-  #events { grid-column: 1 / -1; font: 12px/1.4 ui-monospace, Menlo, monospace; max-height: 320px; overflow: auto; white-space: pre-wrap; }
-  .ev-guardrail { color: #92400e; } .ev-error { color: #991b1b; } .ev-tool\.call { color: #1d4ed8; }
+  #timeline { grid-column: 1 / -1; }
+  #timeline .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  #timeline .legend { font-size: 12px; color: #5b6472; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  #events { max-height: 460px; overflow: auto; border-top: 1px solid #eef0f3; }
+  #events .empty { color: #8a93a0; padding: 10px 2px; font-size: 13px; }
+  .ev { border-bottom: 1px solid #f1f3f5; }
+  .ev > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 3.6em 3.8em 5.6em 1fr; gap: 8px; align-items: baseline; padding: 5px 2px; }
+  .ev > summary::-webkit-details-marker { display: none; }
+  .ev > summary:hover { background: #f6f8fb; }
+  .ev .seq, .ev .t { color: #8a93a0; font: 11px ui-monospace, Menlo, monospace; text-align: right; }
+  .ev .txt { min-width: 0; }
+  .ev .sub { display: block; color: #6b7480; font-size: 12px; }
+  .ev pre { margin: 0 0 8px 14.7em; padding: 8px; background: #f6f7f9; border-radius: 6px; font: 11px/1.4 ui-monospace, Menlo, monospace; white-space: pre-wrap; word-break: break-word; }
+  .chip { display: inline-block; font: 600 10px/1 system-ui, sans-serif; letter-spacing: .04em; padding: 3px 6px; border-radius: 4px; text-align: center; }
+  .c-server { background: #e0e7ff; color: #1e3a8a; } .c-model { background: #f3e8ff; color: #6b21a8; }
+  .c-llm { background: #eef0f3; color: #374151; } .c-guard { background: #fef3c7; color: #92400e; }
+  .c-check { background: #dcfce7; color: #166534; } .c-result { background: #166534; color: #fff; }
+  .c-error { background: #fee2e2; color: #991b1b; }
+  .tone-warn .txt { color: #92400e; } .tone-bad .txt { color: #991b1b; font-weight: 600; } .tone-good .txt { color: #14532d; }
+  .tone-quiet .txt { color: #6b7480; }
+  @media (max-width: 720px) { main { grid-template-columns: 1fr; padding: 16px; } .ev > summary { grid-template-columns: 2em 5.6em 1fr; } .ev .t { display: none; } .ev pre { margin-left: 0; } }
 </style>
 </head>
 <body>
@@ -44,9 +63,23 @@
   <section>
     <h2>Prefill</h2>
     <div class="row"><input id="co" value="ACME" style="max-width:120px"><button id="preBtn">Prefill</button></div>
+    <div id="formMeta" style="color:#6b7480;font-size:12px;margin:-4px 0 6px"></div>
     <table id="form"><thead><tr><th>Field</th><th>Value</th><th>Status</th><th>Source</th></tr></thead><tbody></tbody></table>
   </section>
-  <section id="events"></section>
+  <section id="timeline">
+    <div class="head">
+      <h2 style="margin:0">What happened, step by step</h2>
+      <div class="legend">
+        <span><span class="chip c-server">SERVER</span> our code acting on its own</span>
+        <span><span class="chip c-model">MODEL</span> the model asked for a tool</span>
+        <span><span class="chip c-llm">LLM</span> a call to OpenAI</span>
+        <span><span class="chip c-guard">GUARD</span> a safety rule fired</span>
+        <span><span class="chip c-check">CHECK</span> server validated a value</span>
+        <span>· click a line for the raw event</span>
+      </div>
+    </div>
+    <div id="events"><div class="empty">Run Ask or Prefill and each event will appear here in order.</div></div>
+  </section>
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
@@ -58,10 +91,15 @@ async function loadCompanies() {
   $("companies").textContent = r.ok ? `${j.tenant_id}: ${j.companies.map(c => c.ticker).join(", ")}` : `error ${r.status}`;
 }
 
+let t0 = 0;
 async function stream(path, body, onEvent) {
-  $("events").textContent = "";
+  $("events").textContent = ""; t0 = performance.now();
   const r = await fetch(path, { method: "POST", headers: hdr(), body: JSON.stringify(body) });
-  if (!r.ok) { log("error", await r.text()); return; }
+  if (!r.ok) {
+    const raw = await r.text(); let j = {}; try { j = JSON.parse(raw); } catch {}
+    log("http.refused", { http_status: r.status, ...j, raw: j.detail || j.error ? undefined : raw });
+    return;
+  }
   const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = "";
   for (;;) {
     const { value, done } = await reader.read(); if (done) break;
@@ -71,25 +109,159 @@ async function stream(path, body, onEvent) {
       const frame = buf.slice(0, i); buf = buf.slice(i + 2);
       const type = (frame.match(/^event: (.*)$/m) || [])[1];
       const data = JSON.parse((frame.match(/^data: (.*)$/m) || [])[1] || "{}");
-      if (type !== "answer.delta") log(type, JSON.stringify(data));
+      if (type === "answer.delta") logDelta(data); else { deltaRow = null; log(type, data); }
       onEvent(type, data);
     }
   }
 }
-function log(type, text) {
-  const d = document.createElement("div"); d.className = "ev-" + type; d.textContent = `${type}  ${text}`;
-  $("events").appendChild(d); $("events").scrollTop = 1e9;
+
+// ---- Timeline: one plain-English line per event; click to see the raw JSON ----
+const CHIP = { SERVER: "c-server", MODEL: "c-model", LLM: "c-llm", GUARD: "c-guard", CHECK: "c-check", RESULT: "c-result", ERROR: "c-error" };
+const num = (v) => typeof v === "number" ? v.toLocaleString("en-US") : String(v);
+const page = (p) => p.page == null ? p.doc : `${p.doc.replace("_report.pdf", "")} p.${p.page}`;
+const vals = (o) => Object.entries(o || {}).map(([k, v]) => `${k} ${num(v)}`).join(" · ");
+let runKind = "ask";  // set by run.started; prior-year data means different things in ask vs prefill
+const ms = (v) => v >= 1000 ? `${(v / 1000).toFixed(1)} s` : `${Math.round(v)} ms`;
+
+function describe(type, d) {
+  switch (type) {
+    case "run.started":
+      runKind = d.kind;
+      return { who: "SERVER", text: d.kind === "prefill"
+          ? `Prefill request accepted for ${d.company} (${d.tenant_id}).`
+          : `Question accepted (${d.tenant_id}).`,
+        sub: `For this request, tools may only touch: ${(d.scope || []).join(", ")} · model ${d.model}` };
+    case "tool.call": {
+      const who = d.actor === "system" ? "SERVER" : "MODEL";
+      const a = d.args || {}, r = d.result || {};
+      if (d.status !== "ok")
+        return { who, tone: "bad", text: `BLOCKED: ${d.actor} tried ${d.name}(${JSON.stringify(a)}). Nothing was fetched.`,
+          sub: `reason: ${d.detail}` };
+      const took = ` · ${ms(d.ms || 0)}`;
+      if (d.name === "fetch_company")
+        return { who, text: `Fetched ${a.ticker}'s company record from company_api, using the user's own token.${took}`,
+          sub: `returned: ${vals(r.values)}` };
+      if (d.name === "load_report") {
+        const w = r.withheld || [];
+        return { who, text: `Loaded ${a.company}'s report: ${(r.passages || []).length} sections go to the model` +
+            (w.length ? `, ${w.length} held back (next line).` : "."),
+          sub: (r.passages || []).map(p => `p.${p.page} ${p.section}`).join(" · ") };
+      }
+      if (d.name === "search_documents") {
+        const ps = r.passages || [];
+        return { who, text: `Searched this tenant's documents for "${a.query}"${a.company ? ` (only ${a.company})` : ""}: ${ps.length} passages found.${took}`,
+          sub: ps.map(p => `${page(p)} ${p.section}`).join(" · ") + ((r.withheld || []).length ? ` · ${(r.withheld).length} withheld` : "") };
+      }
+      if (d.name === "submit_form")
+        return { who, text: `Model returned the filled form: ${(a.fields || []).length} fields, each with value, source, page and quote.`,
+          sub: "Nothing is shown yet. The server checks each value first (CHECK lines below)." };
+      if (d.name === "fetch_prior_year")
+        return { who, text: `Fetched ${a.ticker}'s FY${r.fiscal_year ?? "prior"} figures from company_api.${took}`,
+          sub: `returned: ${vals(r.values)} · ` + (runKind === "prefill"
+            ? "Only used to flag big year-on-year jumps. Never copied into the form."
+            : "These figures are not in the report. The answer may use them only if it cites [company_api " + a.ticker + "].") };
+      return { who, text: `${d.name}(${JSON.stringify(a)})${took}` };
+    }
+    case "guardrail":
+      if (d.kind === "passage_withheld")
+        return { who: "GUARD", tone: "warn", text: `Held back "${d.section}" (${page(d)}): it reads like instructions aimed at an AI, so the model never sees it.` };
+      if (d.kind === "scope_denied")
+        return { who: "GUARD", tone: "bad", text: `Blocked an out-of-scope ${d.tool} call.` };
+      if (d.kind === "citation_dropped")
+        return { who: "GUARD", tone: "warn", text: `Dropped citation ${page(d)}: that source was not retrieved in this request.` };
+      if (d.kind === "figure_unsupported")
+        return { who: "GUARD", tone: "bad", text: `Figure ${d.value} is not in any source the answer cites.`,
+          sub: "It already streamed, so it stays on screen, but the answer is marked not grounded." };
+      if (d.kind === "egress_withheld")
+        return { who: "GUARD", tone: "warn", text: `Replaced ${d.count} mention(s) of another tenant's companies with [withheld].` };
+      return { who: "GUARD", tone: "warn", text: d.kind };
+    case "answer.stream":
+      return { who: "LLM", tone: "quiet", text: "Answer text streamed to the screen.",
+        sub: "Shown as it arrives, before any check. The RESULT line is the checked version." };
+    case "llm.call":
+      return { who: "LLM", tone: "quiet", text: `OpenAI call #${(d.step ?? 0) + 1}: read ${num(d.prompt_tokens)} tokens, wrote ${num(d.completion_tokens)}, ` +
+          (d.tool_calls ? `then asked for ${d.tool_calls} tool call(s).` : "then wrote the answer.") + ` · ${ms(d.ms || 0)}` };
+    case "form.field": {
+      const src = d.source === "report" ? page(d) : d.source;
+      const yoy = d.yoy_change_pct != null ? ` · ${d.yoy_change_pct > 0 ? "+" : ""}${d.yoy_change_pct}% vs FY2023` : "";
+      const tone = d.status === "verified" ? "good" : d.status === "conflict" ? "warn" : "bad";
+      return { who: "CHECK", tone,
+        text: `${d.name} = ${d.value == null ? "(empty)" : num(d.value) + (d.unit ? " " + d.unit : "")}: ${d.status}`,
+        sub: `source ${src}${yoy}` + (d.flags && d.flags.length ? ` · flags: ${d.flags.join(", ")}` : "") };
+    }
+    case "form.final": {
+      const s = d.summary || {};
+      return { who: "RESULT", tone: s.verified === Object.values(s).reduce((x, y) => x + y, 0) ? "good" : "warn",
+        text: `Form done: ${s.verified} verified, ${s.conflict} conflict, ${s.rejected} rejected, ${s.missing} missing.`,
+        sub: `Needs human review: ${(d.needs_review || []).length ? d.needs_review.join(", ") : "nothing"}` };
+    }
+    case "answer.final": {
+      const cites = [...d.citations.map(page), ...(d.api_citations || []).map(c => `company_api ${c.ticker}`)];
+      const figs = d.figures || [];
+      const bad = figs.filter(f => f.status === "unsupported").length;
+      return { who: "RESULT", tone: d.grounded ? "good" : "warn",
+        text: `Answer checked: ${cites.length} citation(s) kept${cites.length ? " (" + cites.join(", ") + ")" : ""}, ` +
+              `${figs.length} figure(s) checked, ${bad} unsupported. grounded = ${d.grounded}.`,
+        sub: figs.length ? figs.map(f => `${f.value} → ${f.status === "unsupported" ? "NOT FOUND" : f.source}`).join(" · ")
+                         : "No figures in the answer." };
+    }
+    case "run.usage":
+      return { who: "SERVER", tone: "quiet", text: `Cost: ${d.llm_calls} OpenAI call(s), ${num((d.prompt_tokens || 0) + (d.completion_tokens || 0))} tokens, about $${(d.cost_usd_estimate || 0).toFixed(4)}, ${ms(d.ms || 0)} total.` };
+    case "run.done":
+      return { who: "SERVER", tone: d.status === "ok" ? "quiet" : "bad", text: `Finished (${d.status}).` };
+    case "error":
+      return { who: "ERROR", tone: "bad", text: `Error ${d.code}: ${d.message}` };
+    case "http.refused":
+      return { who: "ERROR", tone: "bad", text: `Refused before anything ran: HTTP ${d.http_status} ${d.detail || d.error || ""}`,
+        sub: d.http_status === 403 ? "Same answer whether the company belongs to another tenant or doesn't exist, so nobody can probe what exists."
+           : d.http_status === 401 ? "No valid bearer token." : "" };
+    default:
+      return { who: "SERVER", text: type };
+  }
+}
+
+function log(type, data) {
+  const { who, text, sub, tone } = describe(type, data);
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  const row = el("details", "ev" + (tone ? " tone-" + tone : ""));
+  const sum = el("summary");
+  sum.append(el("span", "seq", data.seq != null ? "#" + data.seq : ""),
+             el("span", "t", `+${((performance.now() - t0) / 1000).toFixed(1)}s`),
+             el("span", "chip " + CHIP[who], who));
+  const t = el("span", "txt", text); if (sub) t.append(el("span", "sub", sub));
+  sum.append(t); row.append(sum);
+  row.append(el("pre", null, `event: ${type}\n` + JSON.stringify(data, null, 2)));
+  $("events").appendChild(row); $("events").scrollTop = 1e9;
+  return row;
+}
+
+// answer.delta frames (word-by-word text) are folded into one line per streaming burst, so seq numbers have no unexplained gaps.
+let deltaRow = null;
+function logDelta(d) {
+  if (!deltaRow) deltaRow = { first: d.seq, n: 0, text: "", el: log("answer.stream", { seq: d.seq }) };
+  deltaRow.n++; deltaRow.text += d.text;
+  const s = deltaRow.el.querySelector("summary");
+  s.querySelector(".seq").textContent = deltaRow.n > 1 ? `#${deltaRow.first}–${d.seq}` : `#${d.seq}`;
+  s.querySelector(".txt").firstChild.textContent = `Answer text streamed to the screen in ${deltaRow.n} chunk(s).`;
+  deltaRow.el.querySelector("pre").textContent = `event: answer.delta ×${deltaRow.n}\n` + JSON.stringify({ text: deltaRow.text }, null, 2);
 }
 $("askBtn").onclick = () => {
   $("answer").textContent = ""; $("cites").textContent = "";
   stream("/v1/ask", { question: $("q").value }, (t, d) => {
     if (t === "answer.delta") $("answer").textContent += d.text;
-    if (t === "answer.final") $("cites").textContent = "Citations: " + (d.citations.map(c => `${c.doc} p.${c.page}`).join(", ") || "none");
+    if (t === "answer.final") {
+      const cs = [...d.citations.map(c => `${c.doc} p.${c.page}`), ...(d.api_citations || []).map(c => `company_api ${c.ticker}`)];
+      const bad = (d.figures || []).filter(f => f.status === "unsupported").map(f => f.value);
+      $("cites").textContent = "Citations: " + (cs.join(", ") || "none") +
+        (bad.length ? `  ·  Not backed by a cited source: ${bad.join(", ")}` : "");
+    }
   });
 };
 $("preBtn").onclick = () => {
   const tb = $("form").querySelector("tbody"); tb.innerHTML = "";
+  $("formMeta").textContent = "";
   stream("/v1/prefill", { company: $("co").value }, (t, d) => {
+    if (t === "run.started") $("formMeta").textContent = `${d.company}, run as ${d.tenant_id}`;
     if (t !== "form.field") return;
     const tr = document.createElement("tr");
     const src = d.source === "report" ? `${d.doc} p.${d.page}` : d.source;
@@ -100,7 +272,14 @@ $("preBtn").onclick = () => {
     tb.appendChild(tr);
   });
 };
-$("token").onchange = loadCompanies; loadCompanies();
+// Switching bearer wipes every result on screen, so one tenant's output is never shown under another tenant's token.
+$("token").onchange = () => {
+  $("answer").textContent = ""; $("cites").textContent = ""; $("formMeta").textContent = "";
+  $("form").querySelector("tbody").innerHTML = "";
+  $("events").innerHTML = '<div class="empty">Run Ask or Prefill and each event will appear here in order.</div>';
+  loadCompanies();
+};
+loadCompanies();
 </script>
 </body>
 </html>

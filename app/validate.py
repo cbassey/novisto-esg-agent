@@ -11,16 +11,11 @@ A missing value is better than a wrong one on a regulatory form.
 
 from __future__ import annotations
 
-import re
 
+from .grounding import numbers_in  # noqa: F401  (re-exported; one number parser for both checks)
 from .tools import ToolContext
 
 API_BACKED = {"sector": "sector", "headcount": "headcount", "board_size": "board_size"}
-_NUM_RE = re.compile(r"(?<![\d.,])\d{1,3}(?:,\d{3})+(?:\.\d+)?(?![\d,])|(?<![\d.,])\d+(?:\.\d+)?(?![\d])")
-
-
-def numbers_in(text: str) -> list[float]:
-    return [float(m.replace(",", "")) for m in _NUM_RE.findall(text or "")]
 
 
 def _norm(s: str) -> str:
